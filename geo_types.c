@@ -1,4 +1,5 @@
 // #include "geo_decls.h"
+
 #include "postgres.h"
 #include "fmgr.h"
 #include "libpq/pqformat.h"		/* precisa para as funcoes de entrada e saida */
@@ -35,6 +36,7 @@ PG_FUNCTION_INFO_V1(geo_point_send);
 PG_FUNCTION_INFO_V1(adiciona_pontos);
 PG_FUNCTION_INFO_V1(distancia_euclidiana);
 PG_FUNCTION_INFO_V1(polygon_area);
+PG_FUNCTION_INFO_V1(polygon_perimeter);
 
 PG_FUNCTION_INFO_V1(geo_polygon_in);
 PG_FUNCTION_INFO_V1(geo_polygon_out);
@@ -42,11 +44,13 @@ PG_FUNCTION_INFO_V1(geo_polygon_recv);
 PG_FUNCTION_INFO_V1(geo_polygon_send);
 
 PG_FUNCTION_INFO_V1(polygon_has_point);
+PG_FUNCTION_INFO_V1(polygon_has_points);
 
 
 
 int dimension_count(char *s, char delim);
 bool polygon_has_point_ve(Geo_Point *point, Geo_Polygon *geo_polygon);
+double dist_euclidiana(double x1, double x2, double y1, double y2);
 
 
 int dimension_count(char *s, char delim)
@@ -61,17 +65,21 @@ int dimension_count(char *s, char delim)
   return ndelim;
 }
 
-bool polygon_has_point_ve(Geo_Point *point, Geo_Polygon *geo_polygon){
+bool polygon_has_point_ve(Geo_Point *geo_point, Geo_Polygon *geo_polygon){
 	int i;
-	double amag = 0;
+	double amag = 1;
 
 	for(i = 0; i < geo_polygon->n_points; i++){
-		if(!(geo_polygon->points[i].x == geo_point->x && geo_polygon->points[i].y == geo_point->y)){
-			return amag = 1;
+		if((geo_polygon->points[i].x == geo_point->x && geo_polygon->points[i].y == geo_point->y)){
+			return amag = 0;
 		}
 	}
 	return amag;
 
+}
+
+double dist_euclidiana(double x1, double x2, double y1, double y2){
+  return sqrt(pow((x1 - x2),2) + pow(( y1 - y2),2));
 }
 
 Datum
@@ -146,7 +154,8 @@ distancia_euclidiana(PG_FUNCTION_ARGS){
 	Geo_Point *a = (Geo_Point *) PG_GETARG_POINTER(0);
   Geo_Point *b = (Geo_Point *) PG_GETARG_POINTER(1);
 
-	double dist_eu = sqrt(pow((a->x - b->x),2) + pow((a->y - b->y),2));
+	// double dist_eu = sqrt(pow((a->x - b->x),2) + pow((a->y - b->y),2));
+  double dist_eu = dist_euclidiana(a->x, b->x, a->y, b->y);
 	PG_RETURN_FLOAT8 (dist_eu);
 
 }
@@ -165,6 +174,19 @@ polygon_area(PG_FUNCTION_ARGS){
 
 }
 
+Datum
+polygon_perimeter(PG_FUNCTION_ARGS){
+  Geo_Polygon *geo_polygon = (Geo_Polygon *) PG_GETARG_POINTER(0);
+  int i;
+  double perimeter = 0;
+
+  for(i = 1; i < geo_polygon->n_points; i++){
+    perimeter += dist_euclidiana(geo_polygon->points[i-1].x,geo_polygon->points[i].x ,geo_polygon->points[i-1].y, geo_polygon->points[i].y);
+  }
+  perimeter += dist_euclidiana(geo_polygon->points[i-1].x,geo_polygon->points[0].x ,geo_polygon->points[i-1].y, geo_polygon->points[0].y);
+
+  PG_RETURN_FLOAT8(perimeter);
+}
 
 Datum
 polygon_has_point(PG_FUNCTION_ARGS){
@@ -174,6 +196,16 @@ polygon_has_point(PG_FUNCTION_ARGS){
 	PG_RETURN_BOOL(polygon_has_point_ve(geo_point,geo_polygon) == 0);
 }
 
+Datum
+polygon_has_points(PG_FUNCTION_ARGS){
+  Geo_Polygon *geo_polygon = (Geo_Polygon *) PG_GETARG_POINTER(0);
+	// Geo_Point *geo_point = (Geo_Point *)palloc0(VARSIZE(PG_GETARG_POINTER(1)));
+  // SET_VARSIZE(geo_point, VARSIZE(PG_GETARG_POINTER(1)));
+
+
+
+}
+// fazer a funcao com uma lista de pontos tipo exemplo do tex no doc
 Datum
 geo_polygon_in(PG_FUNCTION_ARGS){
   char *str = PG_GETARG_CSTRING(0);
@@ -281,39 +313,47 @@ geo_polygon_send(PG_FUNCTION_ARGS){
 }
 
 // conver representacao externa em binaria para Geo_Polygon
-
-Datum
-geo_polygon_recv(PG_FUNCTION_ARGS){
-	StringInfo buf = (StringInfo) PG_GETARG_POINTER(0);
-
-	// StringInfo	buf = (StringInfo) PG_GETARG_POINTER(0);
-	// 	Polygon3D  *poly;
-	// 	int32		npts;
-	// 	int32		i;
-	// 	int			size;
-	//
-	// 	npts = pq_getmsgint(buf, sizeof(int32));
-	// 	if (npts <= 0 || npts >= (int32) ((INT_MAX - offsetof(Polygon3D, p)) / sizeof(Point3D)))
-	// 		ereport(ERROR,
-	// 				(errcode(ERRCODE_INVALID_BINARY_REPRESENTATION),
-	// 		  errmsg("Invalid number of points in external \"polygon3D\" value")));
-	//
-	// 	size = offsetof(Polygon3D, p) +sizeof(poly->p[0]) * npts;
-	// 	poly = (Polygon3D *) palloc0(size);	/* zero any holes */
-	//
-	// 	SET_VARSIZE(poly, size);
-	// 	poly->npts = npts;
-	//
-	// 	for (i = 0; i < npts; i++)
-	// 	{
-	// 		poly->p[i].x = pq_getmsgfloat8(buf);
-	// 		poly->p[i].y = pq_getmsgfloat8(buf);
-	// 		poly->p[i].z = pq_getmsgfloat8(buf);
-	// 	}
-	//
-	// 	poly3D_make_bbox(poly);
-	//
-	// 	PG_RETURN_POLYGON3D_P(poly);
-
-
-}
+//
+// Datum
+// geo_polygon_recv(PG_FUNCTION_ARGS){
+// 	StringInfo buf = (StringInfo) PG_GETARG_POINTER(0);
+// 	Geo_Polygon *geo_polygon;
+// 	int32 nponts, i;
+// 	int size;
+//
+// 	nponts = pg_getmsgint(buf, sizeof(int32));
+//
+// 	size = offsetof(Geo_Polygon, points) + sizeof(geo_polygon->points[0] * nponts);
+// 	geo_polygon = (Geo_Polygon *) palloc(size);
+// 	SET_VARSIZE(geo_polygon, size);
+// 	// StringInfo	buf = (StringInfo) PG_GETARG_POINTER(0);
+// 	// 	Polygon3D  *poly;
+// 	// 	int32		npts;
+// 	// 	int32		i;
+// 	// 	int			size;
+// 	//
+// 	// 	npts = pq_getmsgint(buf, sizeof(int32));
+// 	// 	if (npts <= 0 || npts >= (int32) ((INT_MAX - offsetof(Polygon3D, p)) / sizeof(Point3D)))
+// 	// 		ereport(ERROR,
+// 	// 				(errcode(ERRCODE_INVALID_BINARY_REPRESENTATION),
+// 	// 		  errmsg("Invalid number of points in external \"polygon3D\" value")));
+// 	//
+// 	// 	size = offsetof(Polygon3D, p) +sizeof(poly->p[0]) * npts;
+// 	// 	poly = (Polygon3D *) palloc0(size);	/* zero any holes */
+// 	//
+// 	// 	SET_VARSIZE(poly, size);
+// 	// 	poly->npts = npts;
+// 	//
+// 	// 	for (i = 0; i < npts; i++)
+// 	// 	{
+// 	// 		poly->p[i].x = pq_getmsgfloat8(buf);
+// 	// 		poly->p[i].y = pq_getmsgfloat8(buf);
+// 	// 		poly->p[i].z = pq_getmsgfloat8(buf);
+// 	// 	}
+// 	//
+// 	// 	poly3D_make_bbox(poly);
+// 	//
+// 	// 	PG_RETURN_POLYGON3D_P(poly);
+//
+//
+// }

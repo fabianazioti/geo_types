@@ -29,6 +29,11 @@ CREATE OR REPLACE FUNCTION public.geo_polygon_out(geo_polygon)
     AS '$libdir/geo_types'
     LANGUAGE C IMMUTABLE STRICT;
 
+CREATE OR REPLACE FUNCTION public.geo_polygon_send(geo_point)
+    RETURNS bytea
+    AS '$libdir/geo_types'
+    LANGUAGE C IMMUTABLE STRICT;
+
 CREATE TYPE geo_point(
   internallength = 20,
   input = geo_point_in,
@@ -63,6 +68,16 @@ CREATE FUNCTION distancia_euclidiana(geo_point, geo_point)
     LANGUAGE C IMMUTABLE STRICT;
 
 CREATE FUNCTION polygon_area(geo_polygon)
+    RETURNS float8
+    AS '$libdir/geo_types'
+    LANGUAGE C IMMUTABLE STRICT;
+
+CREATE FUNCTION polygon_has_point(geo_polygon, geo_point)
+    RETURNS bool
+    AS '$libdir/geo_types'
+    LANGUAGE C IMMUTABLE STRICT;
+
+CREATE FUNCTION polygon_perimeter(geo_polygon)
     RETURNS float8
     AS '$libdir/geo_types'
     LANGUAGE C IMMUTABLE STRICT;
