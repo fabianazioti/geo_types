@@ -326,34 +326,6 @@ geo_polygon_send(PG_FUNCTION_ARGS){
 // 	size = offsetof(Geo_Polygon, points) + sizeof(geo_polygon->points[0] * nponts);
 // 	geo_polygon = (Geo_Polygon *) palloc(size);
 // 	SET_VARSIZE(geo_polygon, size);
-// 	// StringInfo	buf = (StringInfo) PG_GETARG_POINTER(0);
-// 	// 	Polygon3D  *poly;
-// 	// 	int32		npts;
-// 	// 	int32		i;
-// 	// 	int			size;
-// 	//
-// 	// 	npts = pq_getmsgint(buf, sizeof(int32));
-// 	// 	if (npts <= 0 || npts >= (int32) ((INT_MAX - offsetof(Polygon3D, p)) / sizeof(Point3D)))
-// 	// 		ereport(ERROR,
-// 	// 				(errcode(ERRCODE_INVALID_BINARY_REPRESENTATION),
-// 	// 		  errmsg("Invalid number of points in external \"polygon3D\" value")));
-// 	//
-// 	// 	size = offsetof(Polygon3D, p) +sizeof(poly->p[0]) * npts;
-// 	// 	poly = (Polygon3D *) palloc0(size);	/* zero any holes */
-// 	//
-// 	// 	SET_VARSIZE(poly, size);
-// 	// 	poly->npts = npts;
-// 	//
-// 	// 	for (i = 0; i < npts; i++)
-// 	// 	{
-// 	// 		poly->p[i].x = pq_getmsgfloat8(buf);
-// 	// 		poly->p[i].y = pq_getmsgfloat8(buf);
-// 	// 		poly->p[i].z = pq_getmsgfloat8(buf);
-// 	// 	}
-// 	//
-// 	// 	poly3D_make_bbox(poly);
-// 	//
-// 	// 	PG_RETURN_POLYGON3D_P(poly);
-//
+// 	
 //
 // }
