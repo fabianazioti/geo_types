@@ -1,6 +1,6 @@
 # Spatial extension for PostgreSQL
 
-geoext is an spatial extension for PostgreSQL to support geometries
+pg_geoext is a spatial extension prototype for teaching spatial database class
 
 ### Status
 ---
