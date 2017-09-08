@@ -2,34 +2,51 @@
 
 pg_geoext is a spatial extension prototype for teaching spatial database class
 
-### Status
----
-### Requeriments
----
 ### Building & installation
 ---
+src/geoext
+make
+make install
+
 ### Usage
 ---
-For more information read the doc
+
 
 ``` c
 	CREATE EXTENSION geoext;
-	SELECT geo_point_to_str('POINT (22.2 33.2);SRID = 4356'::geo_point)
-	SELECT 'POLYGON ((1 2),(12 6 ),(5 9),(1 2));SRID = 4556'::geo_polygon
+	CREATE TABLE t2
+        (
+  		c geo_linestring
+	);
+
+	INSERT INTO t2 VALUES(linestring_from_text('LINESTRING(0 0, 10 10)')),
+                     (linestring_from_text('LINESTRING(11 11, 12 12, 13 13)'));
+
+	SELECT * FROM t2;
+
+	SELECT to_str(c) FROM t2;
+
+	SELECT linestring_to_array(linestring_from_text('LINESTRING(11 11, 12 12, 13 13, 14 14, 15 15, 11 11)'));
 ```
 ### Types:
 
-* point(x,y)
-* polygon((x1 y1), (x2 y3) .... (x1 y1))
+* POINT(31.3168034143746 29.5994637720287)
+* LINESTRING(11 11, 12 12, 13 13)
+* POLYGON((0 0, 10 0, 10 10, 0 10, 00))
 
 ### Functions:
 ```c
-geo_point_to_str();
-geo_point_from_text();
-geo_point_distance();
 
-geo_polygon_area();
-geo_polygon_perimeter();
+geo_point_from_text(PG_FUNCTION_ARGS);
+geo_point_to_str(PG_FUNCTION_ARGS);
+geo_point_distance()
+
+geo_polygon_area(PG_FUNCTION_ARGS);
+geo_polygon_perimeter(PG_FUNCTION_ARGS);
+geo_polygon_contains_point(PG_FUNCTION_ARGS);
+
+geo_box_contain(box_from_text('BOX (7 7, 1 2)'), box_from_text('BOX (6 6, 2 2)'));
+
 ```
 
 #### Observation:
