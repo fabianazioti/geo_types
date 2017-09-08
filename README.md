@@ -37,13 +37,13 @@ make install
 ### Functions:
 ```c
 
-geo_point_from_text(PG_FUNCTION_ARGS);
-geo_point_to_str(PG_FUNCTION_ARGS);
+geo_point_from_text();
+geo_point_to_str();
 geo_point_distance()
 
-geo_polygon_area(PG_FUNCTION_ARGS);
-geo_polygon_perimeter(PG_FUNCTION_ARGS);
-geo_polygon_contains_point(PG_FUNCTION_ARGS);
+geo_polygon_area();
+geo_polygon_perimeter();
+geo_polygon_contains_point();
 
 geo_box_contain(box_from_text('BOX (7 7, 1 2)'), box_from_text('BOX (6 6, 2 2)'));
 
